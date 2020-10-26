@@ -1,42 +1,33 @@
-import "react-native-gesture-handler";
-import * as React from "react";
-import { Text, View } from "react-native";
+
+import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import HomeScreen from "./screens/HomeScreen";
-import SettingsScreen from "./screens/SettingsScreen";
+import { Provider } from 'react-redux'
+import { createStore,applyMiddleware } from 'redux';
+import DrawerNavigator from "./navigation/DrawerNavigator";
+import * as firebase from "firebase";
+import { firebaseConfig } from "./config";
+import thunk from 'redux-thunk';
+import rootReducer from "./redux/reducers";
+import stripe from 'tipsi-stripe';
+import { PaymentsStripe as Stripe } from 'expo-payments-stripe';
+Stripe.setOptionsAsync({
+  publishableKey: 'pk_test_zKpriPTZuuvkW0Lmv32D4kIW00Hpmdac2h',
+  androidPayMode: 'test'
+});
 
-const Tab = createBottomTabNavigator();
+const store = createStore(rootReducer,applyMiddleware(thunk));
 
-export default function App() {
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+ const App = () => {
   return (
+    <Provider store={store}>
     <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-
-            if (route.name === "Home") {
-              iconName = focused
-                ? "ios-information-circle"
-                : "ios-information-circle-outline";
-            } else if (route.name === "Settings") {
-              iconName = focused ? "ios-list-box" : "ios-list";
-            }
-
-            // You can return any component that you like here!
-            return <Ionicons name={iconName} size={size} color={color} />;
-          },
-        })}
-        tabBarOptions={{
-          activeTintColor: "tomato",
-          inactiveTintColor: "gray",
-        }}
-      >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
-      </Tab.Navigator>
+      <DrawerNavigator />
     </NavigationContainer>
+    </Provider>
   );
 }
+export default App
